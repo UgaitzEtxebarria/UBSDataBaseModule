@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("UBSDataBaseModule")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCopyright("Copyright ©  2018 Ugaitz Etxebarria Iñarra")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
