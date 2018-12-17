@@ -49,7 +49,15 @@ namespace UBSDataBaseModule.Clases
                 DateTime t1 = DateTime.Now;
                 parent.Log("Creacion de las tablas de la base de datos iniciada : " + t1);
 
-				CreateTables();
+				List <string> SQLQueries = new List<string>();
+				CreateTables(out SQLQueries);
+
+				SQLiteCommand command = new SQLiteCommand();
+				foreach (string query in SQLQueries)
+				{
+					command = new SQLiteCommand(query, connection);
+					command.ExecuteNonQuery();
+				}
 
 				parent.Log("Creacion de las tablas finalizada : +" + (DateTime.Now - t1).TotalMilliseconds);
                 connection.Close();
@@ -77,7 +85,7 @@ namespace UBSDataBaseModule.Clases
 
 		//////////////////////////////////////////////////////////////////////////////////
 
-		protected abstract void CreateTables();
+		protected abstract void CreateTables(out List<string> SQLQueries);
 
 		//////////////////////////////////////////////////////////////////////////////////
 
