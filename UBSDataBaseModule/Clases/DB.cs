@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace UBSDataBaseModule.Clases
 {
-    public class DB
+    public abstract class DB
     {
         private UBSLib.UBSBackgroundModule parent;
         private ConcurrentQueue<DBData> pilaComandos;
@@ -24,7 +24,6 @@ namespace UBSDataBaseModule.Clases
         private SQLiteTransaction actualTransaction = null;
 
         /////////////////////////////////////////////////////////////////////////////
-        /////
 
         public DB(string dbname, UBSLib.UBSBackgroundModule parent)
         {
@@ -35,7 +34,7 @@ namespace UBSDataBaseModule.Clases
 
             string fecha = DateTime.Now.ToString().Replace('/', '-').Replace(':', '.');
 
-            this.connectionString = "Data Source=.\\BD\\" + dbname + " (" + fecha + ").db;Version=3; PRAGMA synchronous=OFF;";
+            connectionString = "Data Source=.\\BD\\" + dbname + " (" + fecha + ").db;Version=3; PRAGMA synchronous=OFF;";
 
             SQLiteConnection.CreateFile(".\\BD\\" + dbname + " (" + fecha + ").db");
 
@@ -50,9 +49,9 @@ namespace UBSDataBaseModule.Clases
                 DateTime t1 = DateTime.Now;
                 parent.Log("Creacion de las tablas de la base de datos iniciada : " + t1);
 
-                
+				CreateTables();
 
-                parent.Log("Creacion de las tablas finalizada : +" + (DateTime.Now - t1).TotalMilliseconds);
+				parent.Log("Creacion de las tablas finalizada : +" + (DateTime.Now - t1).TotalMilliseconds);
                 connection.Close();
 
                 tmr = new System.Timers.Timer();
@@ -70,15 +69,19 @@ namespace UBSDataBaseModule.Clases
                 connection.Dispose();
             }
 
-            thrCambioProd = new Thread(() => ejecutorComandos());
+            thrCambioProd = new Thread(() => EjecutorComandos());
             thrCambioProd.Name = "DB";
             thrCambioProd.IsBackground = true;
             thrCambioProd.Start();
         }
 
-        //////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////
 
-        public void ejecutorComandos()
+		protected abstract void CreateTables();
+
+		//////////////////////////////////////////////////////////////////////////////////
+
+		private void EjecutorComandos()
         {
             SQLiteConnection connection;
             DBData dataDB = null;
@@ -124,14 +127,14 @@ namespace UBSDataBaseModule.Clases
 
                                                 while (reader.Read())
                                                 {
-                                                    Object[] objs = new Object[reader.FieldCount];
+													object[] objs = new object[reader.FieldCount];
                                                     reader.GetValues(objs);
 
                                                     foreach (object obj in objs)
                                                         Selected.Add(obj.ToString());
                                                 }
                                                 //parent.Log("(" + DateTime.Now.ToString("HH:mm:ss.FFF") + ") Orden " + dataDB.Command + " datos conseguidos en " + (DateTime.Now - t1).TotalMilliseconds + " ms, objetos en la pila: " + pilaComandos.Count, false);
-                                                dataDB.Data = String.Join("#", Selected.ToArray());
+                                                dataDB.Data = string.Join("#", Selected.ToArray());
                                                 ((DBModule)parent).DBResults[dataDB.Variable] = dataDB;
                                                 dataDB.Readed = true;
                                                 //parent.WriteConsole("(" + DateTime.Now.ToString("HH:mm:ss.FFF") + ") Dato guardado: " + dataDB.Command + " en " + (DateTime.Now - t1).TotalMilliseconds + " ms, objetos en la pila: " + pilaComandos.Count, true);
@@ -174,7 +177,7 @@ namespace UBSDataBaseModule.Clases
 
         //////////////////////////////////////////////////////////////////////////////////
 
-        public void ActivarGuardado(object sender, EventArgs e)
+        private void ActivarGuardado(object sender, EventArgs e)
         {
             if (Thread.CurrentThread.Name == null)
                 Thread.CurrentThread.Name = "Guardador de BD";
@@ -194,7 +197,7 @@ namespace UBSDataBaseModule.Clases
 
         //////////////////////////////////////////////////////////////////////////////////
 
-        public void CerrarBaseDeDatos(SQLiteTransaction transaction)
+        private void CerrarBaseDeDatos(SQLiteTransaction transaction)
         {
             SQLiteTransaction dequeued = null;
             try
@@ -218,7 +221,7 @@ namespace UBSDataBaseModule.Clases
         }
 
         //////////////////////////////////////////////////////////////////////////////////
-        public void añadirPila(string command, string nameDB, string variable)
+        private void añadirPila(string command, string nameDB, string variable)
         {
             try
             {

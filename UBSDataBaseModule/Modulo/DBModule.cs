@@ -16,6 +16,7 @@ namespace UBSDataBaseModule
             Variable = variable;
             Data = "";
             Readed = false;
+			Readed = true;
         }
 
         public string Connection { get; set; }
